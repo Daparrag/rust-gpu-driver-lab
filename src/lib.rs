@@ -11,10 +11,7 @@ pub struct BufferId(u32);
 pub enum DriverError {
     ZeroSizedAllocation,
     UnknownBuffer(BufferId),
-    WriteTooLarge {
-        capacity: usize,
-        requested: usize,
-    },
+    WriteTooLarge { capacity: usize, requested: usize },
 }
 
 /// A simulated DMA-capable GPU buffer.
@@ -51,42 +48,58 @@ pub struct GpuDevice {
 
 impl GpuDevice {
     /// Allocate an empty buffer with the requested capacity.
-    pub fn allocate_buffer(
-        &mut self,
-        capacity: usize,
-    ) -> Result<BufferId, DriverError> {
-	match capacity {
-	 None => return Err(DriverError::ZeroSizedAllocation),
-         _ => return Ok(1),
-	}	
-        todo!("validate capacity, create an ID, construct and store the buffer")
+    pub fn allocate_buffer(&mut self, capacity: usize) -> Result<BufferId, DriverError> {
+        if capacity == 0 {
+            return Err(DriverError::ZeroSizedAllocation);
+        }
+
+        // create a new GpuBuffer with the given capacity and a unique BufferId
+        let id = BufferId(self.next_id);
+        self.next_id += 1;
+        let buffer = GpuBuffer {
+            id,
+            storage: vec![0; capacity],
+            used: 0,
+        };
+        self.buffers.insert(id, buffer);
+        Ok(id)
     }
 
     /// Copy client data into an existing buffer.
     ///
     /// A failed oversized write must leave the original buffer unchanged.
-    pub fn write_buffer(
-        &mut self,
-        id: BufferId,
-        data: &[u8],
-    ) -> Result<(), DriverError> {
-        todo!("find the buffer, validate the size and copy the data")
+    pub fn write_buffer(&mut self, id: BufferId, data: &[u8]) -> Result<(), DriverError> {
+        match self.buffers.get_mut(&id) {
+            None => Err(DriverError::UnknownBuffer(id)),
+            Some(buffer) => {
+                let _requested = data.len();
+                let _capacity = buffer.capacity();
+                if _requested > _capacity {
+                    return Err(DriverError::WriteTooLarge {
+                        capacity: _capacity,
+                        requested: _requested,
+                    });
+                }
+                buffer.storage[0.._requested].copy_from_slice(data);
+                buffer.used = _requested;
+                Ok(())
+            }
+        }
     }
 
     /// Borrow the valid contents of an existing buffer.
-    pub fn read_buffer(
-        &self,
-        id: BufferId,
-    ) -> Result<&[u8], DriverError> {
-        todo!("return a borrowed slice without cloning the buffer")
+    pub fn read_buffer(&self, id: BufferId) -> Result<&[u8], DriverError> {
+        self.buffers
+            .get(&id)
+            .map(GpuBuffer::data)
+            .ok_or(DriverError::UnknownBuffer(id))
     }
 
     /// Remove a buffer and transfer its ownership to the caller.
-    pub fn release_buffer(
-        &mut self,
-        id: BufferId,
-    ) -> Result<GpuBuffer, DriverError> {
-        todo!("remove the buffer from the map")
+    pub fn release_buffer(&mut self, id: BufferId) -> Result<GpuBuffer, DriverError> {
+        self.buffers
+            .remove(&id)
+            .ok_or(DriverError::UnknownBuffer(id))
     }
 
     pub fn buffer_count(&self) -> usize {
@@ -154,9 +167,17 @@ mod tests {
         assert_eq!(released.capacity(), 4);
         assert_eq!(released.data(), &[42, 43]);
         assert_eq!(device.buffer_count(), 0);
-        assert_eq!(
-            device.read_buffer(id),
-            Err(DriverError::UnknownBuffer(id))
-        );
+        assert_eq!(device.read_buffer(id), Err(DriverError::UnknownBuffer(id)));
+    }
+
+    #[test]
+    fn allocations_recieve_different_ids() {
+        let mut device = GpuDevice::default();
+
+        let id1 = device.allocate_buffer(4).unwrap();
+        let id2 = device.allocate_buffer(4).unwrap();
+
+        assert_ne!(id1, id2);
+        assert_eq!(device.buffer_count(), 2);
     }
 }
