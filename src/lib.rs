@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+pub mod device_state;
+
 /// Identifier returned to a client when a GPU buffer is allocated.
 ///
 /// The fields are private so clients cannot construct arbitrary identifiers.
@@ -11,6 +13,7 @@ pub struct BufferId(u32);
 pub enum DriverError {
     ZeroSizedAllocation,
     UnknownBuffer(BufferId),
+    BufferIdExhausted,
     WriteTooLarge {
         capacity: usize,
         requested: usize,
@@ -107,11 +110,12 @@ impl GpuDevice {
         length: usize,
     ) -> Result<&[u8], DriverError> {
         //check offset
-        let initialized = self
+        let buffer = self
             .buffers
             .get(&id)
-            .map(|buffer| buffer.used)
             .ok_or(DriverError::UnknownBuffer(id))?;
+
+        let initialized = buffer.used;
 
         let end = Self::checked_end(offset, length)?;
         if initialized < end {
@@ -121,11 +125,8 @@ impl GpuDevice {
                 initialized,
             });
         }
-
-        self.buffers
-            .get(&id)
-            .map(|buffer| &buffer.data()[offset..end])
-            .ok_or(DriverError::UnknownBuffer(id))
+        // return the right buffer range
+        Ok(&buffer.storage[offset..end])
     }
 
     /// Mark the buffer as containing no valid client data.
@@ -145,13 +146,20 @@ impl GpuDevice {
         }
 
         // create a new GpuBuffer with the given capacity and a unique BufferId
+        let next_id = self
+            .next_id
+            .checked_add(1)
+            .ok_or(DriverError::BufferIdExhausted)?;
+
         let id = BufferId(self.next_id);
-        self.next_id += 1; // potentially overflow
+        self.next_id = next_id;
+
         let buffer = GpuBuffer {
             id,
             storage: vec![0; capacity],
             used: 0,
         };
+
         self.buffers.insert(id, buffer);
         Ok(id)
     }
@@ -201,7 +209,20 @@ impl GpuDevice {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn exhausted_buffer_ids_are_rejected() {
+        let mut device = GpuDevice {
+            next_id: u32::MAX,
+            ..Default::default()
+        };
 
+        assert_eq!(
+            device.allocate_buffer(1),
+            Err(DriverError::BufferIdExhausted)
+        );
+
+        assert_eq!(device.buffer_count(), 0);
+    }
     #[test]
     fn allocate_write_and_read_buffer() {
         let mut device = GpuDevice::default();
@@ -262,7 +283,7 @@ mod tests {
     }
 
     #[test]
-    fn allocations_recieve_different_ids() {
+    fn allocations_receive_different_ids() {
         let mut device = GpuDevice::default();
 
         let id1 = device.allocate_buffer(4).unwrap();
