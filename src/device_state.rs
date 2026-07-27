@@ -107,28 +107,6 @@ impl DeviceController {
         });
 
         Ok(())
-        // check current state
-        //Self::check_image(image)?;
-        //let prevst = std::mem::replace(&mut self.state, DeviceState::Offline);
-        //match prevst {
-        //    DeviceState::Offline => {
-        //        self.state = DeviceState::FirmwareLoaded({
-        //            FirmwareInfo {
-        //                major: image[4],
-        //                minor: image[5],
-        //           }
-        //        });
-        //        Ok(())
-        //    }
-        //    other => {
-        //        let actual = other.kind();
-        //        self.state = other;
-        //       Err(StateError::InvalidState {
-        //            operation: "load_firmware",
-        //            actual,
-        //        })
-        //    }
-        // }
     }
 
     /// Move the firmware information from FirmwareLoaded into Ready.

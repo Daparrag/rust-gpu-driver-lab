@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
+pub mod command;
 pub mod device_state;
+pub mod submission;
 
 /// Identifier returned to a client when a GPU buffer is allocated.
 ///
@@ -203,6 +205,13 @@ impl GpuDevice {
 
     pub fn buffer_count(&self) -> usize {
         self.buffers.len()
+    }
+    /// Return the number of bytes that have been written to the buffer.
+    pub fn initialized_len(&self, id: BufferId) -> Result<usize, DriverError> {
+        self.buffers
+            .get(&id)
+            .map(|buffer| buffer.used)
+            .ok_or(DriverError::UnknownBuffer(id))
     }
 }
 
