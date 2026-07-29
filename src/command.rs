@@ -55,7 +55,7 @@ impl CommandRange {
     pub const ALIGNMENT: usize = 4;
 
     pub fn new(offset: usize, length: usize) -> Result<Self, CommandError> {
-        if offset % Self::ALIGNMENT != 0 {
+        if !offset.is_multiple_of(Self::ALIGNMENT) {
             return Err(CommandError::MisalignedOffset {
                 offset,
                 required_alignment: Self::ALIGNMENT,
