@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 pub mod command;
 pub mod device_state;
+pub mod queue;
 pub mod submission;
 
 /// Identifier returned to a client when a GPU buffer is allocated.

@@ -23,7 +23,7 @@ pub struct SubmissionRequest {
 }
 
 /// Fully validated command associated with an existing buffer.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ValidatedSubmission {
     buffer_id: BufferId,
     command: ValidatedCommand,
