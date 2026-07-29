@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 pub mod command;
 pub mod device_state;
+pub mod driver;
 pub mod queue;
 pub mod submission;
 
