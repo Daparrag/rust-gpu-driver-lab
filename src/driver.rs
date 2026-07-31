@@ -105,7 +105,6 @@ impl SimulatedGpuDriver {
 
     /// Transfer ownership of the oldest submission to the caller.
     pub fn next_submission(&mut self) -> Option<ValidatedSubmission> {
-        //check controller is ready
         self.queue.dequeue()
     }
 

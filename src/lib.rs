@@ -5,6 +5,7 @@ pub mod device_state;
 pub mod driver;
 pub mod queue;
 pub mod submission;
+pub mod typed_driver;
 
 /// Identifier returned to a client when a GPU buffer is allocated.
 ///
