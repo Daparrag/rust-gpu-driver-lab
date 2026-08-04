@@ -4,6 +4,7 @@ use crate::device_state::DeviceState;
 use crate::generic_driver::{GenericDriverError, GenericGpuDriver};
 use crate::queue_backend::SubmissionQueue;
 use crate::submission::ValidatedSubmission;
+use crate::submission_session::SubmissionSession;
 use crate::typed_driver::{DriverState, FirmwareLoaded, Offline, Operational, Ready};
 use std::marker::PhantomData;
 
@@ -135,6 +136,9 @@ where
     T: Operational,
     Q: SubmissionQueue,
 {
+    pub fn begin_submission_session(&mut self) -> SubmissionSession<'_, T, Q> {
+        SubmissionSession::new(self)
+    }
     pub fn allocate_buffer(
         &mut self,
         capacity: usize,

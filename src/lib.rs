@@ -8,6 +8,7 @@ pub mod queue;
 pub mod queue_backend;
 pub mod static_queue;
 pub mod submission;
+pub mod submission_session;
 pub mod typed_driver;
 pub mod typed_generic_driver;
 
