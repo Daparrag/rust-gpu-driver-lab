@@ -9,6 +9,7 @@ pub mod queue_backend;
 pub mod static_queue;
 pub mod submission;
 pub mod typed_driver;
+pub mod typed_generic_driver;
 
 /// Identifier returned to a client when a GPU buffer is allocated.
 ///
