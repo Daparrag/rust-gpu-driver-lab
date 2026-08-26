@@ -82,7 +82,7 @@ impl<'a> MmioRegion<'a> {
         if register_count == 0 {
             return Err(MmioError::EmptyRegion);
         }
-        if (base as usize) % align_of::<u32>() != 0 {
+        if !(base as usize).is_multiple_of(align_of::<u32>()) {
             return Err(MmioError::MisalignedBase {
                 address: base as usize,
                 required_alignment: align_of::<u32>(),
