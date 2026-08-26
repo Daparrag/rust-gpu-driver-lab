@@ -4,6 +4,7 @@ pub mod command;
 pub mod device_state;
 pub mod driver;
 pub mod generic_driver;
+pub mod mmio;
 pub mod queue;
 pub mod queue_backend;
 pub mod static_queue;
