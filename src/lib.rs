@@ -7,6 +7,7 @@ pub mod generic_driver;
 pub mod mmio;
 pub mod queue;
 pub mod queue_backend;
+pub mod registers;
 pub mod static_queue;
 pub mod submission;
 pub mod submission_session;

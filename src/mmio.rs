@@ -235,4 +235,14 @@ mod tests {
             })
         );
     }
+    #[test]
+    fn registers_are_independent() {
+        let mut registers = [0_u32; 3];
+        let mut region = MmioRegion::from_slice(&mut registers).unwrap();
+        region.write(0, 10).unwrap();
+        region.write(2, 30).unwrap();
+        assert_eq!(region.read(0), Ok(10));
+        assert_eq!(region.read(1), Ok(0));
+        assert_eq!(region.read(2), Ok(30));
+    }
 }
