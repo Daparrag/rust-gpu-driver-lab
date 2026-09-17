@@ -63,8 +63,10 @@ where
 pub const CONTROL: Register<ReadWrite> = Register::new(0);
 pub const STATUS: Register<ReadOnly> = Register::new(1);
 pub const COMMAND: Register<WriteOnly> = Register::new(2);
+pub const INT_STATUS: Register<ReadOnly> = Register::new(3);
+pub const INT_ACK: Register<WriteOnly> = Register::new(4);
 
-const REQUIRED_REGISTERS: usize = 3;
+const REQUIRED_REGISTERS: usize = 5;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum RegisterBlockError {
@@ -141,27 +143,27 @@ mod tests {
         assert_eq!(
             GpuRegisterBlock::from_slice(&mut storage,).unwrap_err(),
             RegisterBlockError::RegionTooSmall {
-                required: 3,
+                required: 5,
                 actual: 2,
             }
         );
     }
     #[test]
     fn control_is_read_write() {
-        let mut storage = [0_u32; 3];
+        let mut storage = [0_u32; 5];
         let mut registers = GpuRegisterBlock::from_slice(&mut storage).unwrap();
         registers.write(CONTROL, 0x1234).unwrap();
         assert_eq!(registers.read(CONTROL), Ok(0x1234));
     }
     #[test]
     fn status_is_readable() {
-        let mut storage = [0_u32, 0xA5A5, 0_u32];
+        let mut storage = [0_u32, 0xA5A5, 0_u32, 0_u32, 0_u32];
         let registers = GpuRegisterBlock::from_slice(&mut storage).unwrap();
         assert_eq!(registers.read(STATUS), Ok(0xA5A5));
     }
     #[test]
     fn command_is_writable() {
-        let mut storage = [0_u32; 3];
+        let mut storage = [0_u32; 5];
         {
             let mut registers = GpuRegisterBlock::from_slice(&mut storage).unwrap();
             registers.write(COMMAND, 42).unwrap();
@@ -170,13 +172,13 @@ mod tests {
     }
     #[test]
     fn register_operations_use_correct_offsets() {
-        let mut storage = [0_u32; 3];
+        let mut storage = [0_u32; 5];
         {
             let mut registers = GpuRegisterBlock::from_slice(&mut storage).unwrap();
             registers.write(CONTROL, 11).unwrap();
             registers.write(COMMAND, 33).unwrap();
         }
-        assert_eq!(storage, [11, 0, 33]);
+        assert_eq!(storage, [11, 0, 33, 0, 0]);
     }
     #[test]
     fn larger_region_is_accepted() {
