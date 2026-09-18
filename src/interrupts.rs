@@ -68,7 +68,6 @@ impl InterruptEvents {
     pub fn is_empty(self) -> bool {
         self.bits == 0
     }
-
 }
 
 /// Raw interrupt masks cannot be fabricated directly.
